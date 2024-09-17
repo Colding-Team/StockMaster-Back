@@ -1,0 +1,40 @@
+services:
+  postgres:
+    image: postgres:${SM_DB_VERSION}
+    container_name: stockmaster-db
+    restart: unless-stopped
+    ports:
+      - ${SM_DB_PORT}:5432
+    environment:
+      POSTGRES_USER: ${SM_DB_USER}
+      POSTGRES_PASSWORD: ${SM_DB_PWD}
+      POSTGRES_DB: ${SM_DB_NAME}
+    volumes:
+      - db:/var/lib/postgresql/data
+    networks:
+      - stockmaster
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${SM_PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${SM_PGADMIN_PWD}
+    ports:
+      - 8081:80
+    volumes:
+      - pgadmin:/var/lib/pgadmin
+    networks:
+      - stockmaster
+
+volumes:
+  db:
+    driver: local
+  pgadmin:
+    driver: local
+
+networks:
+  stockmaster:
+    driver: bridge
