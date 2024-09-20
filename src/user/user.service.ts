@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Prisma, User } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 
@@ -7,6 +7,9 @@ export class UserService {
   constructor(private prisma: PrismaService) {}
 
   async user(email: string): Promise<User | null> {
+    if (!email) {
+      throw new BadRequestException('Email must be provided');
+    }
     return this.prisma.user.findUnique({
       where: { email: email },
     });
