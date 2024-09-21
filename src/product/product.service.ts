@@ -60,7 +60,7 @@ export class ProductService {
       data: {
         name: data.name,
         productId: data.productId,
-        typeId: productType.id, // Use the id of the existing or newly created product type
+        typeId: productType.id,
         cost: data.cost,
         price: data.price,
         weight: data.weight,
