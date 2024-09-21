@@ -1,6 +1,6 @@
 # Documentação - `product.controller.ts`
 ### Descrição
-Este arquivo define o ProductController, responsável por gerenciar as operações relacionadas ao produto na aplicação. Ele utiliza o framework NestJS e o serviço ProductService para realizar operações de criação e busca de produtos.
+Este arquivo define o ProductController, responsável por gerenciar as operações relacionadas ao produto na aplicação.
 
 ### Importações
 O arquivo importa os seguintes módulos e classes:
