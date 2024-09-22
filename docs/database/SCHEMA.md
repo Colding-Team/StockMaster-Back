@@ -1,6 +1,8 @@
 # Documentação - `schema.prisma`
 Este arquivo define o esquema do banco de dados utilizando o Prisma ORM. Ele inclui as definições de geradores, fontes de dados e modelos para a aplicação, com o suporte para PostgreSQL.
 
+---
+
 ### Definições Gerais
 **Gerador**
 ```prisma
