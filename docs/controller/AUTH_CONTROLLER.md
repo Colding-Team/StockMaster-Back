@@ -15,7 +15,7 @@ O arquivo importa os seguintes módulos e classes:
 ---
 
 ### Controlador AuthController
-**Definição**
+#### Definição
 ```typescript
 @Controller('auth')
 export class AuthController {
@@ -25,7 +25,7 @@ export class AuthController {
 Este controlador define a rota base `'auth'` e injeta o AuthService para ser usado nos métodos do controlador.
 
 ### Métodos
-* **1.** `signIn`
+#### 1. `signIn`
 * **Descrição**: Realiza o login de um usuário através de credenciais (e-mail e senha).
 * **Rota**: `POST /auth/login`
 * **Acesso**: Público (não requer autenticação).
@@ -41,7 +41,7 @@ async signIn(@Body() signInDto: Record<string, string>) {
 }
 ```
 
-* **2.** `signUp`
+#### 2. `signUp`
 * **Descrição**: Registra um novo usuário no sistema.
 * **Rota**: `POST /auth/register`
 * **Acesso**: Público (não requer autenticação).
@@ -57,7 +57,7 @@ async signUp(@Body() signUpDto: SignUpDto) {
 }
 ```
 
-* **3.** `getProfile`
+#### 3. `getProfile`
 * **Descrição**: Retorna o perfil do usuário autenticado.
 * **Rota**: `GET /auth/profile`
 * **Acesso**: Requer autenticação (somente para usuários autenticados).
