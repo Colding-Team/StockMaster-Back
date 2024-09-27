@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, ProductType } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { CreateProductTypeDto } from './dto/productType.createProductTypeDto';
 
 @Injectable()
 export class ProductTypeService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async productType(
     productTypeWhereUniqueInput: Prisma.ProductWhereUniqueInput,
@@ -31,11 +32,11 @@ export class ProductTypeService {
     });
   }
 
-  async createProductType(
-    data: Prisma.ProductTypeCreateInput,
-  ): Promise<ProductType> {
+  async createProductType(data: CreateProductTypeDto): Promise<ProductType> {
     return this.prisma.productType.create({
-      data,
+      data: {
+        name: data.name,
+      },
     });
   }
 
