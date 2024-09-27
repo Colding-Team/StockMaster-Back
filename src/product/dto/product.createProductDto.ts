@@ -4,8 +4,8 @@ export class CreateProductDto {
   @IsString()
   name: string;
 
-  @IsInt()
-  productId: number;
+  @IsString()
+  productId: string;
 
   @IsOptional()
   @IsString()
@@ -13,7 +13,7 @@ export class CreateProductDto {
 
   @IsOptional()
   @IsInt()
-  typeId: number;
+  typeId?: number;
 
   @IsInt()
   cost: number;
@@ -35,6 +35,7 @@ export class CreateProductDto {
   @IsInt()
   barCode: number;
 
+  @IsOptional()
   @IsInt()
-  quantity: number;
+  quantity?: number;
 }

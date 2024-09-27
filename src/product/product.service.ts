@@ -9,7 +9,7 @@ export class ProductService {
   constructor(
     private prisma: PrismaService,
     private productTypeService: ProductTypeService,
-  ) {}
+  ) { }
 
   async product(
     productWhereUniqueInput: Prisma.ProductWhereUniqueInput,
@@ -25,27 +25,39 @@ export class ProductService {
     cursor?: Prisma.ProductWhereUniqueInput;
     where?: Prisma.ProductWhereInput;
     orderBy?: Prisma.ProductOrderByWithRelationInput;
+    userId?: number;
   }): Promise<Product[]> {
-    const { skip, take, cursor, where, orderBy } = params;
+    const { skip, take, cursor, where, orderBy, userId } = params;
     return this.prisma.product.findMany({
       skip,
       take,
       cursor,
-      where,
+      where: {
+        ...where,
+        userId,
+      },
       orderBy,
     });
   }
 
-  async createProduct(data: CreateProductDto): Promise<Product> {
-    let productType: ProductType | null =
-      await this.prisma.productType.findUnique({
+  async createProduct(
+    data: CreateProductDto,
+    userEmail: string,
+  ): Promise<Product> {
+    let productType: ProductType | null = null;
+    if (data.typeId) {
+      productType = await this.prisma.productType.findUnique({
         where: { id: data.typeId },
       });
-
-    if (!productType) {
-      productType = await this.productTypeService.createProductType({
-        name: data.type,
+    } else if (data.type) {
+      productType = await this.prisma.productType.findUnique({
+        where: { name: data.type },
       });
+      if (!productType && data.type) {
+        productType = await this.productTypeService.createProductType({
+          name: data.type,
+        });
+      }
     }
 
     const existingProduct = await this.prisma.product.findFirst({
@@ -53,14 +65,26 @@ export class ProductService {
     });
 
     if (existingProduct) {
-      throw new BadRequestException('Já existe um produto com este nome!');
+      throw new BadRequestException('Já existe um produto com este nome ou ID!');
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { email: userEmail },
+    });
+
+    const existingBarCode = await this.prisma.product.findFirst({
+      where: { barCode: data.barCode },
+      select: { name: true, productId: true }
+    });
+    if (existingBarCode) {
+      throw new BadRequestException(`Já existe um produto com este código de barras (${data.barCode})! Produto: ${existingBarCode.name} ID: ${existingBarCode.productId}`);
     }
 
     return this.prisma.product.create({
       data: {
         name: data.name,
         productId: data.productId,
-        typeId: productType.id,
+        type: productType ? { connect: { id: productType.id } } : undefined,
         cost: data.cost,
         price: data.price,
         weight: data.weight,
@@ -68,6 +92,9 @@ export class ProductService {
         batch: data.batch,
         barCode: data.barCode,
         quantity: data.quantity,
+        user: {
+          connect: { id: user.id },
+        },
       },
     });
   }

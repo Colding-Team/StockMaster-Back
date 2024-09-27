@@ -33,4 +33,9 @@ export class AuthController {
   async getProfile(@Request() req) {
     return await req.user;
   }
+
+  @Get('profile/email')
+  async getProfileEmail(@Request() req) {
+    return await req.user.email;
+  }
 }
