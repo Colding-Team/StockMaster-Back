@@ -1,8 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, Product, ProductType } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ProductTypeService } from './product_type/productType.service';
 import { CreateProductDto } from './dto/product.createProductDto';
+import { UpdateProductDto } from './dto/product.updateProductDto';
 
 @Injectable()
 export class ProductService {
@@ -12,10 +13,16 @@ export class ProductService {
   ) { }
 
   async product(
-    productWhereUniqueInput: Prisma.ProductWhereUniqueInput,
+    productWhereInput: Prisma.ProductWhereInput,
+    userEmail: string,
   ): Promise<Product | null> {
-    return this.prisma.product.findUnique({
-      where: productWhereUniqueInput,
+    return this.prisma.product.findFirst({
+      where: {
+        ...productWhereInput,
+        user: {
+          email: userEmail
+        }
+      },
     });
   }
 
@@ -26,8 +33,9 @@ export class ProductService {
     where?: Prisma.ProductWhereInput;
     orderBy?: Prisma.ProductOrderByWithRelationInput;
     userId?: number;
+    userEmail: string;
   }): Promise<Product[]> {
-    const { skip, take, cursor, where, orderBy, userId } = params;
+    const { skip, take, cursor, where, orderBy, userId, userEmail } = params;
     return this.prisma.product.findMany({
       skip,
       take,
@@ -35,6 +43,12 @@ export class ProductService {
       where: {
         ...where,
         userId,
+        type: {
+          name: where?.type?.name,
+        },
+        user: {
+          email: userEmail
+        }
       },
       orderBy,
     });
@@ -45,12 +59,8 @@ export class ProductService {
     userEmail: string,
   ): Promise<Product> {
     let productType: ProductType | null = null;
-    if (data.typeId) {
-      productType = await this.prisma.productType.findUnique({
-        where: { id: data.typeId },
-      });
-    } else if (data.type) {
-      productType = await this.prisma.productType.findUnique({
+    if (data.type) {
+      productType = await this.prisma.productType.findFirst({
         where: { name: data.type },
       });
       if (!productType && data.type) {
@@ -68,10 +78,6 @@ export class ProductService {
       throw new BadRequestException('Já existe um produto com este nome ou ID!');
     }
 
-    const user = await this.prisma.user.findUnique({
-      where: { email: userEmail },
-    });
-
     const existingBarCode = await this.prisma.product.findFirst({
       where: { barCode: data.barCode },
       select: { name: true, productId: true }
@@ -79,6 +85,10 @@ export class ProductService {
     if (existingBarCode) {
       throw new BadRequestException(`Já existe um produto com este código de barras (${data.barCode})! Produto: ${existingBarCode.name} ID: ${existingBarCode.productId}`);
     }
+
+    const user = await this.prisma.user.findUnique({
+      where: { email: userEmail },
+    });
 
     return this.prisma.product.create({
       data: {
@@ -101,11 +111,26 @@ export class ProductService {
 
   async updateProduct(params: {
     where: Prisma.ProductWhereUniqueInput;
-    data: Prisma.ProductUpdateInput;
+    data: UpdateProductDto;
   }): Promise<Product> {
     const { where, data } = params;
+    const updateData: Prisma.ProductUpdateInput = {
+      name: data.name,
+      productId: data.productId,
+      cost: data.cost,
+      price: data.price,
+      weight: data.weight,
+      imgUrl: data.imgUrl,
+      batch: data.batch,
+      barCode: data.barCode,
+    };
+
+    if (data.typeId) {
+      updateData.type = { connect: { id: data.typeId } };
+    }
+
     return this.prisma.product.update({
-      data,
+      data: updateData,
       where,
     });
   }
@@ -114,5 +139,35 @@ export class ProductService {
     return this.prisma.product.delete({
       where,
     });
+  }
+
+  async getAllProductNames(userEmail: string): Promise<string[]> {
+    const products = await this.prisma.product.findMany({
+      where: {
+        user: {
+          email: userEmail
+        }
+      },
+      select: {
+        name: true
+      }
+    });
+
+    return products.map(product => product.name);
+  }
+
+  async getAllProductCost(userEmail: string): Promise<number[]> {
+    const products = await this.prisma.product.findMany({
+      where: {
+        user: {
+          email: userEmail
+        }
+      },
+      select: {
+        cost: true
+      }
+    });
+
+    return products.map(product => product.cost);
   }
 }

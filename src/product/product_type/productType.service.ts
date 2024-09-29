@@ -8,9 +8,9 @@ export class ProductTypeService {
   constructor(private prisma: PrismaService) { }
 
   async productType(
-    productTypeWhereUniqueInput: Prisma.ProductWhereUniqueInput,
+    productTypeWhereUniqueInput: Prisma.ProductTypeWhereUniqueInput,
   ): Promise<ProductType | null> {
-    return this.prisma.product.findUnique({
+    return this.prisma.productType.findFirst({
       where: productTypeWhereUniqueInput,
     });
   }
