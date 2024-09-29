@@ -4,7 +4,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class UserService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async user(email: string): Promise<User | null> {
     if (!email) {
@@ -45,12 +45,6 @@ export class UserService {
     const { where, data } = params;
     return this.prisma.user.update({
       data,
-      where,
-    });
-  }
-
-  async deleteUser(where: Prisma.UserWhereUniqueInput): Promise<User> {
-    return this.prisma.user.delete({
       where,
     });
   }
