@@ -4,8 +4,9 @@ import { ProductModule } from './product/product.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { UserModule } from './user/user.module';
 import { ProductEntryModule } from './product-entry/product-entry.module';
+import { StockMovementModule } from './stock-movement/stock-movement.module';
 
 @Module({
-  imports: [AuthModule, UserModule, ProductModule, PrismaModule, ProductEntryModule],
+  imports: [AuthModule, UserModule, ProductModule, PrismaModule, ProductEntryModule, StockMovementModule],
 })
 export class AppModule {}
