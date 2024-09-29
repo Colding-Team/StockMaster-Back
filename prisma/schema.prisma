@@ -56,7 +56,7 @@ model StockMovement {
   product     Product           @relation(fields: [productId], references: [id])
   quantity    Int
   date        DateTime
-  description String
+  description String?
   userId      Int
   user        User              @relation(fields: [userId], references: [id])
 }

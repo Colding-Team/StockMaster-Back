@@ -8,6 +8,9 @@ import { AuthGuard } from './auth.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { UserService } from 'src/user/user.service';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { StockMovementService } from 'src/stock-movement/stock-movement.service';
+import { ProductService } from 'src/product/product.service';
+import { ProductTypeService } from 'src/product/product_type/productType.service';
 
 @Module({
   imports: [
@@ -27,6 +30,9 @@ import { PrismaService } from 'src/prisma/prisma.service';
     },
     UserService,
     PrismaService,
+    StockMovementService,
+    ProductService,
+    ProductTypeService,
   ],
   exports: [AuthService],
 })

@@ -101,7 +101,6 @@ export class ProductService {
         imgUrl: data.imgUrl,
         batch: data.batch,
         barCode: data.barCode,
-        quantity: data.quantity,
         user: {
           connect: { id: user.id },
         },
@@ -132,6 +131,36 @@ export class ProductService {
     return this.prisma.product.update({
       data: updateData,
       where,
+    });
+  }
+
+  async getProductByIdentifier(productIdentifier: string, userEmail: string): Promise<Product | null> {
+    return this.prisma.product.findFirst({
+      where: {
+        OR: [
+          { productId: productIdentifier },
+          { name: productIdentifier },
+        ],
+        user: {
+          email: userEmail
+        }
+      },
+    });
+  }
+
+  async updateProductQuantity(productId: number, quantity: number): Promise<Product> {
+    const product = await this.prisma.product.findUnique({
+      where: { id: productId }
+    });
+    if (!product) {
+      throw new NotFoundException(`Produto não encontrado para o identificador: ${productId}`);
+    } else if (product.quantity + quantity < 0) {
+      throw new BadRequestException(`Quantidade insuficiente em estoque! Quantidade atual: ${product.quantity}`);
+    }
+
+    return this.prisma.product.update({
+      data: { quantity: { increment: quantity } },
+      where: { id: productId },
     });
   }
 

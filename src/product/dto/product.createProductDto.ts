@@ -34,8 +34,4 @@ export class CreateProductDto {
 
   @IsInt()
   barCode: number;
-
-  @IsOptional()
-  @IsInt()
-  quantity?: number;
 }

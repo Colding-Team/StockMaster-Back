@@ -1,16 +1,42 @@
-import { Injectable } from '@nestjs/common';
-import { Prisma, StockMovement } from '@prisma/client';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { Prisma, Product, StockMovement, StockMovementType } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { CreateStockMovementDto } from './dto/stock-movement.createSMDto';
+import { ProductService } from 'src/product/product.service';
 
 @Injectable()
 export class StockMovementService {
   constructor(
     private prisma: PrismaService,
+    private productService: ProductService
   ) { }
 
-  async createStockMovement(data: Prisma.StockMovementCreateInput): Promise<StockMovement> {
+  async createStockMovement(
+    data: CreateStockMovementDto,
+    productIdentifier: string,
+    userEmail: string
+  ): Promise<StockMovement> {
+    const product = await this.productService.getProductByIdentifier(productIdentifier, userEmail);
+
+    if (!product) {
+      throw new NotFoundException(`Produto não encontrado para o identificador: ${productIdentifier}`);
+    }
+
+    await this.productService.updateProductQuantity(product.id, data.quantity);
+
     return this.prisma.stockMovement.create({
-      data,
+      data: {
+        type: data.type,
+        product: {
+          connect: { id: product.id },
+        },
+        quantity: data.quantity,
+        date: new Date(),
+        description: data.description,
+        user: {
+          connect: { email: userEmail },
+        },
+      },
     });
   }
 
