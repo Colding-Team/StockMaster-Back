@@ -109,4 +109,13 @@ export class ProductController {
     const userEmail = req.user.email;
     return this.productService.getAllProductCost(userEmail);
   }
+
+  @Get('search')
+  async searchProducts(
+    @Query('term') term: string,
+    @Request() req
+  ): Promise<{ productId: string; name: string }[]> {
+    const userEmail = req.user.email;
+    return this.productService.searchProducts(term, userEmail);
+  }
 }

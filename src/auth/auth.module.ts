@@ -18,7 +18,7 @@ import { ProductTypeService } from 'src/product/product_type/productType.service
     JwtModule.register({
       global: true,
       secret: jwtConstants.secret,
-      signOptions: { expiresIn: '60s' },
+      signOptions: { expiresIn: '8h' },
     }),
   ],
   controllers: [AuthController],
@@ -36,4 +36,4 @@ import { ProductTypeService } from 'src/product/product_type/productType.service
   ],
   exports: [AuthService],
 })
-export class AuthModule {}
+export class AuthModule { }

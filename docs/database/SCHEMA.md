@@ -28,10 +28,12 @@ datasource db {
 **Modelo** `User`
 ```prisma
 model User {
-  id       Int    @default(autoincrement()) @id
-  name     String
-  email    String @unique
-  password String
+  id             Int             @id @default(autoincrement())
+  name           String
+  email          String          @unique
+  password       String
+  products       Product[]
+  stockMovements StockMovement[]
 }
 ```
 * **Descrição**: Este modelo define um usuário no sistema.
@@ -40,61 +42,118 @@ model User {
   * `name`: Nome do usuário.
   * `email`: Endereço de e-mail do usuário, deve ser único.
   * `password`: Senha do usuário (armazenada como string).
+  * `products`: Relação com os produtos do usuário.
+  * `stockMovements`: Relação com os movimentos de estoque do usuário.
 
 **Modelo** `Product`
 ```prisma
 model Product {
-  id                Int          @default(autoincrement()) @id
-  name              String       @unique
-  productId         Int          @unique
-  type              ProductType? @relation(fields: [typeId], references: [id])
-  typeId            Int?
-  cost              Int
-  price             Int
-  weight            Int
-  imgUrl            String?
-  batch             String?
-  barCode           Int
-  quantity          Int          @default(0)
+  id             Int             @id @default(autoincrement())
+  name           String
+  productId      String
+  type           ProductType?    @relation(fields: [typeId], references: [id])
+  typeId         Int?
+  cost           Int
+  price          Int
+  weight         Int
+  imgUrl         String?
+  batch          String?
+  barCode        Int             @unique
+  quantity       Int             @default(0)
+  userId         Int
+  user           User            @relation(fields: [userId], references: [id])
+  stockMovements StockMovement[]
+
+  @@unique([productId, userId])
+  @@index([name, productId, userId])
 }
-
 ```
-
 * **Descrição**: Este modelo define um produto no sistema.
 * **Campos**:
   * `id`: Identificador único do produto, incrementado automaticamente.
-  * `name`: Nome do produto, deve ser único.
-  * `productId`: Um identificador único adicional para o produto.
+  * `name`: Nome do produto.
+  * `productId`: Identificador do produto definido pelo usuário.
   * `type`: Tipo de produto, com uma relação opcional com o modelo ProductType.
   * `typeId`: Campo opcional que referencia o ProductType.
-  * `cost`: Custo de produção ou aquisição do produto.
+  * `cost`: Custo do produto.
   * `price`: Preço de venda do produto.
   * `weight`: Peso do produto.
   * `imgUrl`: URL da imagem do produto (opcional).
   * `batch`: Lote de produção (opcional).
-  * `barCode`: Código de barras do produto.
+  * `barCode`: Código de barras do produto, deve ser único.
   * `quantity`: Quantidade de produtos disponíveis, com valor padrão de 0.
+  * `userId`: ID do usuário proprietário do produto.
+  * `user`: Relação com o usuário proprietário.
+  * `stockMovements`: Relação com os movimentos de estoque do produto.
+* **Índices e Restrições**:
+  * Combinação única de `productId` e `userId`.
+  * Índice composto em `name`, `productId` e `userId` para otimização de consultas.
 
 **Modelo** `ProductType`
 ```prisma
 model ProductType {
-  id       Int       @default(autoincrement()) @id
-  name     String    @unique
+  id       Int       @id @default(autoincrement())
+  name     String
   products Product[]
 }
 ```
-* **Descrição**: Define o tipo de um produto (por exemplo, eletrônico, vestuário).
+* **Descrição**: Define o tipo de um produto.
 * **Campos**:
   * `id`: Identificador único do tipo de produto, incrementado automaticamente.
-  * `name`: Nome do tipo de produto, deve ser único.
-  * `products`: Relação de um-para-muitos com o modelo Product, o que significa que um tipo de produto pode estar associado a vários produtos.
+  * `name`: Nome do tipo de produto.
+  * `products`: Relação de um-para-muitos com o modelo Product.
+
+**Modelo** `StockMovement`
+```prisma
+model StockMovement {
+  id          Int               @id @default(autoincrement())
+  type        StockMovementType
+  productId   Int
+  product     Product           @relation(fields: [productId], references: [id])
+  quantity    Int
+  date        DateTime
+  description String?
+  userId      Int
+  user        User              @relation(fields: [userId], references: [id])
+}
+```
+* **Descrição**: Registra os movimentos de estoque dos produtos.
+* **Campos**:
+  * `id`: Identificador único do movimento de estoque, incrementado automaticamente.
+  * `type`: Tipo de movimento (entrada ou saída), definido pelo enum StockMovementType.
+  * `productId`: ID do produto associado ao movimento.
+  * `product`: Relação com o produto associado.
+  * `quantity`: Quantidade movimentada.
+  * `date`: Data e hora do movimento.
+  * `description`: Descrição opcional do movimento.
+  * `userId`: ID do usuário que realizou o movimento.
+  * `user`: Relação com o usuário que realizou o movimento.
+
+**Enum** `StockMovementType`
+```prisma
+enum StockMovementType {
+  IN
+  OUT
+}
+```
+* **Descrição**: Define os tipos possíveis de movimento de estoque.
+* **Valores**:
+  * `IN`: Entrada de estoque.
+  * `OUT`: Saída de estoque.
+
 ---
 ### Notas
 * **Relações**:
-  * O modelo Product possui uma relação opcional com o modelo ProductType através do campo `typeId`.
-  * O modelo ProductType tem uma lista de produtos associados através do campo `products[]`.
+  * O modelo User tem relações um-para-muitos com Product e StockMovement.
+  * O modelo Product tem relações um-para-muitos com StockMovement e muitos-para-um com User e ProductType.
+  * O modelo StockMovement tem relações muitos-para-um com Product e User.
 
 * **Validação e Unicidade**:
-  * O campo `email` no modelo User e o campo `name` no modelo ProductType devem ser únicos no banco de dados, garantindo que não haja duplicatas.
-  * O campo `productId` no modelo Product também deve ser único, garantindo a singularidade de identificadores de produtos.
-* Banco de Dados: O banco de dados utilizado é PostgreSQL, conforme especificado na fonte de dados.
+  * O campo `email` no modelo User deve ser único.
+  * O campo `barCode` no modelo Product deve ser único.
+  * A combinação de `productId` e `userId` no modelo Product deve ser única.
+
+* **Índices**:
+  * Um índice composto foi adicionado no modelo Product para otimizar consultas por nome, productId e userId.
+
+* **Banco de Dados**: O banco de dados utilizado é PostgreSQL, conforme especificado na fonte de dados.

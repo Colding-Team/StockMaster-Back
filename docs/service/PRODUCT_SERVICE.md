@@ -7,13 +7,13 @@ Este arquivo define o **ProductService**, responsável por gerenciar as operaç�
 O arquivo importa os seguintes módulos e bibliotecas:
 
 * **@nestjs/common**:
-  * **BadRequestException**: Exceção lançada quando ocorre uma solicitação inválida, como a tentativa de criar um produto com um nome ou ID já existente.
-  * **Injectable**: Decorador que marca a classe como um provedor injetável no NestJS.
+  * BadRequestException, Injectable, NotFoundException: Exceções e decorador para injeção de dependência.
 * **@prisma/client**:
-  * **Prisma, Product, ProductType**: Tipos gerados automaticamente pelo Prisma para manipulação de dados e definições de modelo.
-* **PrismaService**: Serviço personalizado que encapsula o cliente Prisma para realizar operações no banco de dados.
+  * Prisma, Product, ProductType: Tipos gerados automaticamente pelo Prisma.
+* **PrismaService**: Serviço personalizado que encapsula o cliente Prisma.
 * **ProductTypeService**: Serviço responsável pelas operações relacionadas ao tipo de produto.
-* **CreateProductDto**: DTO usado para garantir que os dados fornecidos na criação de um produto sejam válidos e tipados corretamente.
+* **CreateProductDto**: DTO para criação de produtos.
+* **UpdateProductDto**: DTO para atualização de produtos.
 
 ---
 
@@ -34,135 +34,72 @@ O serviço injeta o **PrismaService** para interagir com o banco de dados e o **
 
 ### Métodos
 #### 1. `product`
-* **Descrição**: Busca um único produto no banco de dados com base em um critério único.
+* **Descrição**: Busca um único produto no banco de dados com base em critérios e email do usuário.
 * **Parâmetros**:
-  * `productWhereUniqueInput`: Um objeto que define a condição única para buscar o produto (por exemplo, ID ou nome único).
+  * `productWhereInput`: Condições de busca para o produto.
+  * `userEmail`: Email do usuário para escopo da busca.
 * **Retorno**: Retorna o produto encontrado ou `null` se não existir.
-```typescript
-async product(
-  productWhereUniqueInput: Prisma.ProductWhereUniqueInput,
-): Promise<Product | null> {
-  return this.prisma.product.findUnique({
-    where: productWhereUniqueInput,
-  });
-}
-```
 
 #### 2. `products`
 * **Descrição**: Busca múltiplos produtos com suporte a paginação, filtros e ordenação.
 * **Parâmetros**:
-  * `params`: Um objeto que pode incluir os seguintes campos:
-  * `skip`: Número de registros a serem pulados (para paginação).
-  * `take`: Número de registros a serem retornados (limite).
-  * `cursor`: Ponto de referência para paginação baseada em cursor.
-  * `where`: Filtros para busca.
-  * `orderBy`: Ordenação dos resultados.
+  * `params`: Objeto com opções de busca, incluindo `skip`, `take`, `cursor`, `where`, `orderBy`, `userId`, e `userEmail`.
 * **Retorno**: Retorna uma lista de produtos que correspondem aos critérios.
-```typescript
-async products(params: {
-  skip?: number;
-  take?: number;
-  cursor?: Prisma.ProductWhereUniqueInput;
-  where?: Prisma.ProductWhereInput;
-  orderBy?: Prisma.ProductOrderByWithRelationInput;
-}): Promise<Product[]> {
-  const { skip, take, cursor, where, orderBy } = params;
-  return this.prisma.product.findMany({
-    skip,
-    take,
-    cursor,
-    where,
-    orderBy,
-  });
-}
-```
 
 #### 3. `createProduct`
-* **Descrição**: Cria um novo produto no banco de dados. Verifica se o tipo de produto existe; caso contrário, cria um novo tipo. Também verifica se o nome ou ID do produto já está em uso antes de criar o produto.
+* **Descrição**: Cria um novo produto no banco de dados.
 * **Parâmetros**:
-  * `data`: Um objeto do tipo CreateProductDto contendo os dados necessários para criar um novo produto.
+  * `data`: Objeto do tipo CreateProductDto contendo os dados do novo produto.
+  * `userEmail`: Email do usuário criando o produto.
 * **Retorno**: Retorna o produto recém-criado.
-#### Fluxo do Método:
-1. Verifica se o tipo de produto existe com base no `typeId`. Se não existir, cria um novo tipo usando o ProductTypeService.
-2. Verifica se já existe um produto com o mesmo `productId` ou `name`.
-3. Se existir, lança uma exceção `BadRequestException`.
-4. Cria e retorna o novo produto.
-```typescript
-async createProduct(data: CreateProductDto): Promise<Product> {
-  let productType: ProductType | null =
-    await this.prisma.productType.findUnique({
-      where: { id: data.typeId },
-    });
-
-  if (!productType) {
-    productType = await this.productTypeService.createProductType({
-      name: data.type,
-    });
-  }
-
-  const existingProduct = await this.prisma.product.findFirst({
-    where: { OR: [{ productId: data.productId }, { name: data.name }] },
-  });
-
-  if (existingProduct) {
-    throw new BadRequestException('Já existe um produto com este nome!');
-  }
-
-  return this.prisma.product.create({
-    data: {
-      name: data.name,
-      productId: data.productId,
-      typeId: productType.id,
-      cost: data.cost,
-      price: data.price,
-      weight: data.weight,
-      imgUrl: data.imgUrl,
-      batch: data.batch,
-      barCode: data.barCode,
-      quantity: data.quantity,
-    },
-  });
-}
-```
+* **Comportamento**:
+  * Verifica e cria o tipo de produto se necessário.
+  * Verifica a existência de produtos com o mesmo nome, ID ou código de barras.
+  * Associa o produto ao usuário correto.
 
 #### 4. `updateProduct`
-* **Descrição**: Atualiza um produto existente no banco de dados com base em um critério único.
+* **Descrição**: Atualiza um produto existente no banco de dados.
 * **Parâmetros**:
-  * `params`: Um objeto que contém:
-  * `where`: Critério para identificar o produto a ser atualizado.
-  * `data`: Os novos dados a serem aplicados ao produto.
+  * `params`: Objeto contendo `where` (critério de busca) e `data` (dados a serem atualizados).
 * **Retorno**: Retorna o produto atualizado.
-```typescript
-async updateProduct(params: {
-  where: Prisma.ProductWhereUniqueInput;
-  data: Prisma.ProductUpdateInput;
-}): Promise<Product> {
-  const { where, data } = params;
-  return this.prisma.product.update({
-    data,
-    where,
-  });
-}
-```
 
-#### 5. `deleteProduct`
-* **Descrição**: Exclui um produto com base em um critério único.
+#### 5. `getProductByIdentifier`
+* **Descrição**: Busca um produto por seu identificador (nome ou ID) e email do usuário.
+* **Parâmetros**:
+  * `productIdentifier`: Nome ou ID do produto.
+  * `userEmail`: Email do usuário para escopo da busca.
+* **Retorno**: Retorna o produto encontrado ou `null`.
+
+#### 6. `updateProductQuantity`
+* **Descrição**: Atualiza a quantidade de um produto no estoque.
+* **Parâmetros**:
+  * `productId`: ID do produto.
+  * `quantity`: Quantidade a ser adicionada ou removida.
+* **Retorno**: Retorna o produto atualizado.
+* **Comportamento**: Verifica a existência do produto e se há quantidade suficiente para remoção.
+
+#### 7. `deleteProduct`
+* **Descrição**: Exclui um produto do banco de dados.
 * **Parâmetros**:
   * `where`: Critério para identificar o produto a ser excluído.
 * **Retorno**: Retorna o produto que foi excluído.
-```typescript
-async deleteProduct(
-  where: Prisma.ProductWhereUniqueInput,
-): Promise<Product> {
-  return this.prisma.product.delete({
-    where,
-  });
-}
-```
+
+#### 8. `getAllProductNames`
+* **Descrição**: Retorna os nomes de todos os produtos de um usuário.
+* **Parâmetros**:
+  * `userEmail`: Email do usuário.
+* **Retorno**: Retorna um array com os nomes dos produtos.
+
+#### 9. `getAllProductCost`
+* **Descrição**: Retorna os custos de todos os produtos de um usuário.
+* **Parâmetros**:
+  * `userEmail`: Email do usuário.
+* **Retorno**: Retorna um array com os custos dos produtos.
 
 ---
 
 ### Notas
-* **Validação e Exceções**: O serviço verifica se já existe um produto com o mesmo nome ou ID antes de criar um novo produto, lançando uma exceção se for o caso.
-* **Relações com `ProductType`**: O método `createProduct` integra a criação e verificação de tipos de produto, garantindo que cada produto esteja associado a um tipo válido.
-* **Operações CRUD**: O serviço oferece métodos completos para as operações CRUD (Create, Read, Update, Delete) sobre produtos, utilizando as capacidades do Prisma para filtros e ordenações complexas.
+* **Validação e Exceções**: O serviço implementa várias verificações e lança exceções apropriadas (BadRequestException, NotFoundException) para casos de erro.
+* **Escopo do Usuário**: Todas as operações são realizadas no contexto do usuário autenticado, utilizando o email do usuário.
+* **Integração com ProductType**: O serviço gerencia a criação e associação de tipos de produto quando necessário.
+* **Operações de Estoque**: Inclui lógica para atualização de quantidade de produtos no estoque, com verificações de segurança.

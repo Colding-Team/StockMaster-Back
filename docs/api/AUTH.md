@@ -36,5 +36,5 @@ curl -X POST http://localhost:3000/auth/login -d '{"email": "test@test.com", "pa
 | url     	| /auth/profile                  	|
 | header  	| Content-Type: application/json 	|
 ```
-curl http://localhost:3000/auth/profile -H "Authorization: Bearer <JWT-token>"
+curl -X GET http://localhost:3000/auth/profile -H "Authorization: Bearer <JWT-token>"
 ```

@@ -199,4 +199,22 @@ export class ProductService {
 
     return products.map(product => product.cost);
   }
+
+  async searchProducts(term: string, userEmail: string): Promise<{ productId: string; name: string }[]> {
+    const products = await this.prisma.product.findMany({
+      where: {
+        OR: [
+          { productId: { contains: term, mode: 'insensitive' } },
+          { name: { contains: term, mode: 'insensitive' } },
+        ],
+        user: { email: userEmail },
+      },
+      select: { productId: true, name: true },
+    });
+
+    return products.map(product => ({
+      productId: `${product.productId} (productId)`,
+      name: `${product.name} (name)`,
+    }));
+  }
 }

@@ -100,7 +100,7 @@ async signIn(email: string, pass: string): Promise<{ access_token: string }> {
 
 ---
 
-### Notas
+### Observações
 * **Criptografia de Senhas**: O serviço utiliza bcrypt para fazer o hash da senha no registro e para verificar a senha na autenticação. Isso garante que as senhas sejam armazenadas de forma segura.
 * **Exceções**: As exceções são lançadas para erros comuns como e-mail já existente (`BadRequestException`) ou credenciais inválidas (`UnauthorizedException`).
 * **JWT**: O **JwtService** é usado para gerar tokens JWT que serão usados para autenticação de sessão. O token é assinado de forma assíncrona para melhor performance.

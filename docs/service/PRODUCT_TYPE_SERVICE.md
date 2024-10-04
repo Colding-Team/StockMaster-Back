@@ -1,5 +1,5 @@
 # Documentação - `productType.service.ts`
-Este arquivo define o **ProductTypeService**, que é responsável por gerenciar as operações relacionadas ao tipo de produto na aplicação. Ele utiliza o **Prisma ORM** para interagir com o banco de dados, oferecendo métodos para criação, atualização, exclusão e consulta de tipos de produtos.
+Este arquivo define o **ProductTypeService**, responsável por gerenciar as operações relacionadas aos tipos de produto na aplicação. Ele utiliza o **Prisma ORM** para interagir com o banco de dados, oferecendo métodos para criação, atualização, exclusão e consulta de tipos de produtos.
 
 ---
 
@@ -7,10 +7,11 @@ Este arquivo define o **ProductTypeService**, que é responsável por gerenciar 
 O arquivo importa os seguintes módulos e bibliotecas:
 
 * **@nestjs/common**:
-  * **Injectable**: Decorador que marca a classe como um provedor injetável no NestJS.
+  * Injectable: Decorador que marca a classe como um provedor injetável no NestJS.
 * **@prisma/client**:
-  * **Prisma, ProductType**: Tipos gerados automaticamente pelo Prisma para manipulação de dados e definições de modelo.
+  * Prisma, ProductType: Tipos gerados automaticamente pelo Prisma para manipulação de dados e definições de modelo.
 * **PrismaService**: Serviço personalizado que encapsula o cliente Prisma para realizar operações no banco de dados.
+* **CreateProductTypeDto**: DTO (Data Transfer Object) para criação de tipos de produto.
 
 ---
 
@@ -28,13 +29,13 @@ Este serviço injeta o **PrismaService** para realizar operações de banco de d
 #### 1. `productType`
 * **Descrição**: Busca um único tipo de produto no banco de dados com base em um critério único.
 * **Parâmetros**:
-  * `productTypeWhereUniqueInput`: Um objeto que define a condição única para buscar o tipo de produto (por exemplo, ID ou nome único).
+  * `productTypeWhereUniqueInput`: Um objeto que define a condição única para buscar o tipo de produto.
 * **Retorno**: Retorna o tipo de produto encontrado ou `null` se não existir.
 ```typescript
 async productType(
-  productTypeWhereUniqueInput: Prisma.ProductWhereUniqueInput,
+  productTypeWhereUniqueInput: Prisma.ProductTypeWhereUniqueInput,
 ): Promise<ProductType | null> {
-  return this.prisma.product.findUnique({
+  return this.prisma.productType.findFirst({
     where: productTypeWhereUniqueInput,
   });
 }
@@ -44,11 +45,11 @@ async productType(
 * **Descrição**: Busca múltiplos tipos de produtos com suporte a paginação, filtros e ordenação.
 * **Parâmetros**:
   * `params`: Um objeto que pode incluir os seguintes campos:
-  * `skip`: Número de registros a serem pulados (para paginação).
-  * `take`: Número de registros a serem retornados (limite).
-  * `cursor`: Ponto de referência para paginação baseada em cursor.
-  * `where`: Filtros para busca.
-  * `orderBy`: Ordenação dos resultados.
+    * `skip`: Número de registros a serem pulados (para paginação).
+    * `take`: Número de registros a serem retornados (limite).
+    * `cursor`: Ponto de referência para paginação baseada em cursor.
+    * `where`: Filtros para busca.
+    * `orderBy`: Ordenação dos resultados.
 * **Retorno**: Retorna uma lista de tipos de produtos que correspondem aos critérios.
 ```typescript
 async productTypes(params: {
@@ -72,7 +73,7 @@ async productTypes(params: {
 #### 3. `createProductType`
 * **Descrição**: Cria um novo tipo de produto no banco de dados.
 * **Parâmetros**:
-  * `data`: Um objeto contendo os dados necessários para criar um novo tipo de produto.
+  * `data`: Um objeto do tipo CreateProductTypeDto contendo os dados necessários para criar um novo tipo de produto.
 * **Retorno**: Retorna o tipo de produto recém-criado.
 ```typescript
 async createProductType(

@@ -73,7 +73,7 @@ async getProfile(@Request() req) {
 
 ---
 
-### Notas
+## Observações
 * **Autenticação**: As rotas de login e registro são públicas, marcadas pelo decorador `@Public()`. A rota `GET /auth/profile` é privada, disponível apenas para usuários autenticados.
 * **Lógica de Negócio**: A lógica de autenticação e criação de usuários está encapsulada no AuthService, que é injetado no controlador.
 * **DTOs (Data Transfer Objects)**:

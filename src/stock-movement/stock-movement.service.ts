@@ -51,7 +51,7 @@ export class StockMovementService {
     });
   }
 
-  async getStockMovements(stockMovementWhereInput: Prisma.StockMovementWhereInput, userEmail: string): Promise<StockMovement[]> {
+  async getStockMovements(id: number, p0: Date, p1: Date, stockMovementWhereInput: Prisma.StockMovementWhereInput, userEmail: string): Promise<StockMovement[]> {
     return this.prisma.stockMovement.findMany({
       where: {
         ...stockMovementWhereInput,
