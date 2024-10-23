@@ -1,4 +1,9 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Options } from '@nestjs/common';
 
-@Controller()
-export class AppController {}
+@Controller('/auth')
+export class AuthController {
+  @Options('register')
+  async optionsRegister() {
+    return; 
+  }
+}
