@@ -1,4 +1,4 @@
-import { Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
 import { EmailService } from './email.service';
 import { Public } from 'src/auth/auth.guard';
 
@@ -9,7 +9,11 @@ export class EmailController {
   @Public()
   @HttpCode(HttpStatus.OK)
   @Post('send')
-  async sendEmail(to: string, subject: string, text: string): Promise<void> {
-    await this.emailService.sendEmail(to, subject, text)
+  async sendEmail(
+    @Body('to') to: string,
+    @Body('subject') subject: string,
+    @Body('text') text: string
+  ): Promise<void> {
+    await this.emailService.sendEmail(to, subject, text);
   }
 }

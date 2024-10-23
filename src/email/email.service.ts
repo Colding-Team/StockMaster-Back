@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { createTransport } from "nodemailer";
-import dotenv from "dotenv";
+import { config } from "dotenv"
 
 @Injectable()
 export class EmailService {
   private transporter;
 
   constructor() {
-    dotenv.config();
+    config()
     this.transporter = createTransport({
       host: process.env.SMTP_HOST,
       port: Number(process.env.SMTP_PORT),
